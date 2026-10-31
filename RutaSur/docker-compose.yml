@@ -8,10 +8,11 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -26,5 +27,85 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: rutasur-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+    depends_on:
+      - mongodb
+
+  proyector:
+    build:
+      context: .
+    container_name: rutasur-proyector
+    command: node servicios/proyector.js
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      MONGODB_URI: mongodb://mongodb:27017
+    depends_on:
+      - kafka
+      - mongodb
+
+  notificaciones:
+    build:
+      context: .
+    container_name: rutasur-notificaciones
+    command: node servicios/notificaciones.js
+    environment:
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - kafka
+
+  reprogramacion:
+    build:
+      context: .
+    container_name: rutasur-reprogramacion
+    command: node servicios/reprogramacion.js
+    environment:
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - kafka
+
+  monitor-sla:
+    build:
+      context: .
+    container_name: rutasur-monitor-sla
+    command: node servicios/monitor-sla.js
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      MONGODB_URI: mongodb://mongodb:27017
+    depends_on:
+      - kafka
+      - mongodb
+
+  
+  analitica:
+    build:
+      context: .
+    container_name: rutasur-analitica
+    command: node servicios/analitica.js
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      MONGODB_URI: mongodb://mongodb:27017
+    depends_on:
+      - kafka
+      - mongodb
+
+  simulador:
+    build:
+      context: .
+    container_name: rutasur-simulador
+    command: node simulador/simulador.js continuo
+    environment:
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - kafka
+    restart: on-failure
+
+    
 volumes:
   mongodb_data:

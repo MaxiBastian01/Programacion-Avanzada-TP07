@@ -4,7 +4,7 @@ const { MongoClient } = require("mongodb");
 
 const kafka = new Kafka({
     clientId: "rutasur-proyector",
-    brokers: ["localhost:9092"],
+    brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
 });
 
 const consumer = kafka.consumer({
@@ -13,7 +13,9 @@ const consumer = kafka.consumer({
 // Productor para enviar eventos incorrectos a la DLQ.
 const producer = kafka.producer();
 
-const mongo = new MongoClient("mongodb://localhost:27017");
+const mongo = new MongoClient(
+  process.env.MONGODB_URI || "mongodb://localhost:27017"
+);
 
 
 const estadosValidos = [

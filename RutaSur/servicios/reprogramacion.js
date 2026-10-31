@@ -4,7 +4,7 @@ const { randomUUID } = require("crypto");
 
 const kafka = new Kafka({
   clientId: "rutasur-reprogramacion",
-  brokers: ["localhost:9092"],
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
 });
 
 const consumer = kafka.consumer({

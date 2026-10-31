@@ -6,7 +6,7 @@ const { fechaSimulada } = require("../reloj");
 // Nos conectamos al servidor Kafka para enviar los eventos.
 const kafka = new Kafka({
   clientId: "rutasur-simulador",
-  brokers: [process.env.KAFKA_BROKER || "localhost:9092"],
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
 });
 
 // Productor: es el encargado de enviar eventos a Kafka.

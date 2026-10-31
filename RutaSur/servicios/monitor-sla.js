@@ -5,11 +5,13 @@ const { randomUUID } = require("crypto");
 
 const kafka = new Kafka({
   clientId: "rutasur-monitor-sla",
-  brokers: ["localhost:9092"],
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
 });
 
 const producer = kafka.producer();
-const mongo = new MongoClient("mongodb://localhost:27017");
+const mongo = new MongoClient(
+  process.env.MONGODB_URI || "mongodb://localhost:27017"
+);
 
 
 function ahoraSimulado() {
